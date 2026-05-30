@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/brief.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/brief", "dest": "/api/brief.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/brief", "destination": "/api/brief.js" }
   ]
 }
