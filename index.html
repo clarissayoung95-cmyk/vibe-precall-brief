@@ -204,19 +204,25 @@ function buildSignals(acc){
       <div class="sig-num">Signal 1 · account type</div>
       <div class="sig-title">B2C vs B2B</div>
       <div class="sig-val ${isB2C?'good':'warn'}">${acc.companyKind} · ${isB2C?'~$195K avg':'~$70K avg'}</div>
-      <div class="sig-why">${isB2C?"B2C accounts generate 2.8× more revenue than B2B. High-value opp — pitch full platform confidently.":"B2B accounts earn 2.8× less on average. Focus on lead-gen and account-based targeting use cases."}</div>
+      <div class="sig-why">${isB2C?"B2C generates 2.8× more revenue than B2B ($195K vs $70K avg). Don't rush to close — within B2C, slower deals (30+ days) actually generate 16% more revenue. Focus on quality of pitch over speed.":"B2B accounts earn 2.8× less on average. Focus on lead-gen and account-based targeting. Fast close matters here — B2B deals closing under 14 days outperform by 58%."}</div>
     </div>
     <div class="sig-card s2">
       <div class="sig-num">Signal 2 · attribution stack</div>
       <div class="sig-title">Attribution integration</div>
       <div class="sig-val ${attrTool?'good':'bad'}">${attrTool?attrTool+' available':'No attribution tool'}</div>
-      <div class="sig-why">${attrTool?`Activating ${attrTool} drives 42% more revenue and 60 more active days on average. Most important integration to land on this call.`:"No high-value attribution tool available. Lead with GA integration and manage attribution expectations."}</div>
+      <div class="sig-why">${attrTool?`Activating ${attrTool} drives 42% more revenue and 60 more active days. Accounts with attribution tools are 64% more likely to still be active at 30 days — this is the single strongest retention lever. Frame it as connecting what they already own.`:"No Northbeam/Haus/Triple Whale available. Manage attribution expectations and lead with GA integration as the measurement entry point."}</div>
     </div>
     <div class="sig-card s3">
       <div class="sig-num">Signal 3 · pipeline intent</div>
       <div class="sig-title">Inbound signal</div>
       <div class="sig-val ${scoreClass}">${acc.signal} · ${sigScore}% win rate</div>
-      <div class="sig-why">${sigScore>=65?"Strong intent. Push to close fast — deals under 14 days earn 80% more revenue.":sigScore>=55?"Solid intent. Qualified but needs a specific use case to build urgency.":"Early stage. Lead with proof points. Fast close still doubles revenue potential."}</div>
+      <div class="sig-why">${
+        acc.signal==='Hot Account'?"78% win rate but watch the nuance: Hot Accounts have the highest churn (31%) and lowest avg revenue ($155K) of any signal. Easy to close, harder to retain. Prioritize integration activation on this call over speed.": 
+        acc.signal==='In-Person Event Attendee'?"Strong combined signal: 66% win rate, $180K avg revenue, and only 26% churn — one of the best quality signals in the dataset. Rapport is already built. Move fast and define success metrics on this call.": 
+        acc.signal==='Partner Launch Eligible'?"Best retention signal: only 26% churn vs 31% average, $181K avg revenue. Partner-sourced accounts stay longer. Lead with the integration story — that's what the partner relationship is built on.": 
+        acc.signal==='vibe.co meeting booked'?"Self-booked signals strong intent (61% win rate, $171K avg revenue) but 32% still churn. They chose Vibe — now give them a reason to stay. Integration activation on this call is critical.": 
+        "Lowest win rate (46%) but revenue among won accounts is solid ($162K). They're still learning — lead with education and proof points. Don't oversell; do push integrations hard if they close."
+      }</div>
     </div>
   </div>`;
 }
@@ -291,7 +297,7 @@ ATTENDEES: ${atts} | Duration: ${acc.duration}
 THREE KEY SIGNALS:
 1. ${acc.companyKind} — B2C generates 2.8× more revenue ($195K vs $70K avg). ${acc.companyKind==='B2C Advertiser'?"High-value opp, pitch full platform.":"Calibrate to lead-gen use cases."}
 2. Attribution: ${attrTool?`${attrTool} available — activating it drives 42% more revenue and 60 more active days. Push this hard.`:"No Northbeam/Haus/Triple Whale available. Lead with GA integration."}
-3. Signal "${acc.signal}" — ${sigScore}% win rate. ${sigScore>=65?"Strong intent, push to close fast.":sigScore>=55?"Solid intent, needs a specific use case to build urgency.":"Early stage, lead with education and proof points."} Deals under 14 days earn 80% more revenue.
+3. Signal "${acc.signal}" — ${sigScore}% win rate. ${"Hot Account"===acc.signal?"Easy to close (78% win rate) but highest churn risk (31%) and lowest avg revenue ($155K) of any signal. Don't just close fast — push hard on integration activation to drive post-close retention.":acc.signal==="In-Person Event Attendee"?"Best quality signal: 66% win rate, $180K avg revenue, only 26% churn. Rapport exists — move confidently and define success metrics on this call.":acc.signal==="Partner Launch Eligible"?"Best retention signal: only 26% churn, $181K avg revenue. Lead with the integration story — that's what the partner ecosystem is built around.":acc.signal==="vibe.co meeting booked"?"Strong intent (61% win rate) but 32% still churn. They chose to show up — now give them a reason to stay. Integration activation is critical.":"Lowest win rate (46%). Lead with education and proof, not urgency. If they close, integrations are the key to keeping them."} Note: for ${acc.companyKind==='B2C Advertiser'?"B2C accounts, slower deals (30+ days) actually generate 16% more revenue — prioritize pitch quality over speed":"B2B accounts, fast close (<14 days) outperforms by 58% — create urgency"}.${acc.companyKind==='B2C Advertiser'?"":""} 
 
 Write a concise brief with these five labeled sections. Specific, direct, reference actual tools by name. No generic advice.
 
