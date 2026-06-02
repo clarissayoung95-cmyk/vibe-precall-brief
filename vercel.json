@@ -1,6 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/brief", "destination": "/api/brief.js" }
+    { "source": "/api/brief", "destination": "/api/brief.js" },
+    { "source": "/api/notes", "destination": "/api/notes.js" }
   ]
 }

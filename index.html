@@ -114,6 +114,32 @@
 
   .section-label { font-weight: 600; color: var(--text-primary); }
 
+
+  /* ---- Post-call notes ---- */
+  .notes-card { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .notes-card .card-header { margin-bottom: 14px; }
+  .notes-form { display: flex; flex-direction: column; gap: 12px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group select, .form-group input, .form-group textarea { padding: 8px 12px; font-size: 14px; font-family: inherit; border: 1px solid var(--border-med); border-radius: var(--radius-md); background: var(--bg); color: var(--text-primary); outline: none; resize: vertical; }
+  .form-group select:focus, .form-group input:focus, .form-group textarea:focus { border-color: #1a1a2e; }
+  .integ-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .integ-check { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid var(--border-med); border-radius: 20px; cursor: pointer; font-size: 12px; color: var(--text-secondary); user-select: none; transition: all .15s; }
+  .integ-check:hover { border-color: #1a1a2e; color: var(--text-primary); }
+  .integ-check.selected { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  .integ-check input { display: none; }
+  .save-btn { padding: 10px 20px; background: #1a1a2e; color: #fff; border: none; border-radius: var(--radius-md); font-size: 14px; font-family: inherit; font-weight: 500; cursor: pointer; align-self: flex-start; transition: opacity .15s; }
+  .save-btn:hover { opacity: 0.85; }
+  .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .save-status { font-size: 13px; padding: 4px 0; }
+  .save-status.ok { color: var(--green-text); }
+  .save-status.err { color: var(--red-text); }
+  .prev-intel { background: var(--blue-bg); border: 1px solid rgba(26,79,160,0.15); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; }
+  .prev-intel .pi-title { font-size: 12px; font-weight: 600; color: var(--blue-text); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .prev-intel .pi-row { font-size: 13px; color: var(--text-primary); margin-bottom: 4px; }
+  .prev-intel .pi-row span { font-weight: 500; color: var(--blue-text); }
+  .prev-intel .pi-notes { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-top: 8px; border-top: 1px solid rgba(26,79,160,0.15); padding-top: 8px; white-space: pre-wrap; }
   @media (max-width: 700px) {
     .signals-grid { grid-template-columns: 1fr; }
     .selector-row { flex-wrap: wrap; }
@@ -274,11 +300,53 @@ function buildStatic(acc){
   <div class="card ai-card" id="aicard">
     <div class="card-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><h2>AI call brief</h2></div>
     <div id="ai-out"><div class="ai-loading"><div class="spinner"></div>Generating brief...</div></div>
+  </div>
+  <div class="notes-card" id="notes-card">
+    <div class="card-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <h2>Log call notes</h2>
+    </div>
+    <div id="prev-intel-area"></div>
+    <div class="notes-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Call outcome</label>
+          <select id="note-outcome">
+            <option value="">Select outcome...</option>
+            <option value="booked_followup">Booked follow-up</option>
+            <option value="closed_won">Closed won</option>
+            <option value="closed_lost">Closed lost</option>
+            <option value="no_decision">No decision</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Decision maker identified</label>
+          <input type="text" id="note-dm" placeholder="Name and title...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Integrations pitched</label>
+        <div class="integ-checkboxes" id="pitched-checks"></div>
+      </div>
+      <div class="form-group">
+        <label>Integrations activated on call</label>
+        <div class="integ-checkboxes" id="activated-checks"></div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="note-text" rows="4" placeholder="Key objections, next steps, anything the brief should know next time..."></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="save-btn" id="save-notes-btn" onclick="saveNotes()">Save notes</button>
+        <span class="save-status" id="save-status"></span>
+      </div>
+    </div>
   </div>`;
 }
 
 function buildPrompt(acc){
   const atts=acc.attendees.map(a=>`${a.fn} ${a.ln} (${a.title})`).join(', ');
+  const intelContext=window._accountIntel&&window._accountIntel.cumulative_notes?`\n\nPREVIOUS CALL HISTORY FOR THIS ACCOUNT:\n${window._accountIntel.cumulative_notes}\n\nKey contacts identified: ${window._accountIntel.key_contacts||'none'}\nIntegrations already activated: ${(window._accountIntel.integrations_activated||[]).join(', ')||'none'}\nUse this history to make the brief more specific — reference what was discussed before and what still needs to be resolved.`:'';
   const attrTool=getAttrTool(acc);
   const sigScore=SIG_SCORES[acc.signal]||50;
   return `Generate a pre-call sales brief for a Vibe sales rep about to meet with ${acc.name}.
@@ -320,6 +388,11 @@ async function go(){
 
   document.getElementById('bwrap').className='brief-wrap visible';
   document.getElementById('bcontent').innerHTML=buildStatic(acc);
+  // Load previous intel and build checkboxes
+  const integrations=acc.availIntegrations.split(';').map(s=>s.trim()).filter(Boolean);
+  buildIntegCheckboxes(integrations,'pitched-checks');
+  buildIntegCheckboxes(integrations,'activated-checks');
+  loadPreviousIntel(name);
 
   const aiOut=document.getElementById('ai-out');
   aiOut.innerHTML='<div class="ai-loading"><div class="spinner"></div>Calling Claude...</div>';
@@ -346,6 +419,86 @@ async function go(){
   btn.disabled=false;
   btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Regenerate`;
 }
+
+// ---- Notes & Intelligence ----
+async function loadPreviousIntel(accountName) {
+  try {
+    const res = await fetch('/api/notes?account=' + encodeURIComponent(accountName));
+    const data = await res.json();
+    const area = document.getElementById('prev-intel-area');
+    if (!area) return;
+    if (data.intelligence && data.intelligence.total_calls > 0) {
+      const intel = data.intelligence;
+      const outcomeLabels = { booked_followup: 'Booked follow-up', closed_won: 'Closed won', closed_lost: 'Closed lost', no_decision: 'No decision' };
+      area.innerHTML = `<div class="prev-intel">
+        <div class="pi-title">Previous call history (${intel.total_calls} call${intel.total_calls>1?'s':''})</div>
+        <div class="pi-row">Last call: <span>${new Date(intel.last_call_date).toLocaleDateString()}</span> · Outcome: <span>${outcomeLabels[intel.last_outcome]||intel.last_outcome||'unknown'}</span></div>
+        ${intel.key_contacts ? `<div class="pi-row">Known contacts: <span>${intel.key_contacts}</span></div>` : ''}
+        ${intel.integrations_activated?.length ? `<div class="pi-row">Integrations activated: <span>${intel.integrations_activated.join(', ')}</span></div>` : ''}
+        ${intel.cumulative_notes ? `<div class="pi-notes">${intel.cumulative_notes}</div>` : ''}
+      </div>`;
+    } else {
+      area.innerHTML = '';
+    }
+    window._accountIntel = data.intelligence;
+    return data.intelligence;
+  } catch(e) {
+    console.log('Could not load intel:', e.message);
+    return null;
+  }
+}
+
+function buildIntegCheckboxes(integrations, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = integrations.map(i => `
+    <label class="integ-check" onclick="this.classList.toggle('selected')">
+      <input type="checkbox" value="${i}"> ${i}
+    </label>`).join('');
+}
+
+function getChecked(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} .integ-check.selected`))
+    .map(el => el.querySelector('input').value);
+}
+
+async function saveNotes() {
+  const name = document.getElementById('asel').value;
+  if (!name) return;
+  const btn = document.getElementById('save-notes-btn');
+  const status = document.getElementById('save-status');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  status.textContent = '';
+  try {
+    const res = await fetch('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accountName: name,
+        outcome: document.getElementById('note-outcome').value,
+        integrationsPitched: getChecked('pitched-checks'),
+        integrationsActivated: getChecked('activated-checks'),
+        decisionMaker: document.getElementById('note-dm').value,
+        notes: document.getElementById('note-text').value
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      status.className = 'save-status ok';
+      status.textContent = '✓ Notes saved — will inform future briefs for this account';
+      await loadPreviousIntel(name);
+    } else {
+      throw new Error(data.error || 'Save failed');
+    }
+  } catch(e) {
+    status.className = 'save-status err';
+    status.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Save notes';
+}
+
 </script>
 </body>
 </html>
